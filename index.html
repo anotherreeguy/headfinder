@@ -3,28 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Skin 3D Preview</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three-minecraft-player-model@1.1.1/dist/three-minecraft-player-model.js"></script>
+    <title>ReeGuy's Head Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #222;
+            color: #fff;
+        }
+        .header {
+            background-color: purple;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        /* Styling for dark mode button */
+        #darkModeBtn {
+            padding: 10px 20px;
+            background-color: purple;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            outline: none; /* Remove default focus outline */
+        }
+        #darkModeBtn:hover {
+            background-color: #800080; /* Darker shade of purple on hover */
+        }
+        #darkModeBtn.dark-mode {
+            background-color: #333; /* Darker background color in dark mode */
+        }
+        #darkModeBtn.dark-mode:hover {
+            background-color: #555; /* Darker shade on hover in dark mode */
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .search-btn {
+            padding: 10px 20px;
+            background-color: purple;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .search-results {
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .avatar {
+            margin: 10px;
+            width: 100px; /* Initial size */
+            height: 100px; /* Initial size */
+            cursor: pointer;
+            transition: width 0.3s, height 0.3s; /* Add transition for smooth resizing */
+        }
+        .avatar.show-head {
+            width: 120px; /* Increased size when head image is shown */
+            height: 120px; /* Increased size when head image is shown */
+        }
+        .avatar.full-body {
+            width: 200px; /* Increased size when full body image appears */
+            height: auto; /* Maintain aspect ratio */
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Minecraft Skin 3D Previewer</h1>
-        <div class="input-container">
-            <input type="text" id="username" placeholder="Enter Minecraft Username" />
-            <button onclick="fetchSkin()">Preview Skin</button>
-        </div>
-        <div class="skin-preview">
-            <div id="preview3d" class="preview3d"></div>
-            <img id="skinImage" src="" alt="Minecraft Skin" />
-        </div>
-        <div class="download-container">
-            <button id="downloadBtn" onclick="downloadSkin()" style="display: none;">Download Skin</button>
-        </div>
-        <div id="errorMessage" class="error-message"></div>
+
+<div class="header">
+    <h1>ReeGuy's Head Finder</h1>
+    <button id="darkModeBtn">Dark Mode</button>
+</div>
+
+<div class="container">
+    <div class="search-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="Enter Minecraft username">
+        <button id="searchBtn" class="search-btn">Search</button>
     </div>
 
-    <script src="script.js"></script>
+    <div class="search-results" id="searchResults">
+        <!-- Search results will be displayed here -->
+    </div>
+</div>
+
+<script>
+    // Dark mode functionality
+    const darkModeBtn = document.getElementById("darkModeBtn");
+    const body = document.body;
+
+    darkModeBtn.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        darkModeBtn.classList.toggle("dark-mode");
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", function() {
+        var username = document.getElementById("searchInput").value.trim();
+        if (username !== "") {
+            var avatarURL = "https://mc-heads.net/avatar/" + username;
+            displayAvatar(username, avatarURL);
+        } else {
+            alert("Please enter a Minecraft username.");
+        }
+    });
+
+    function displayAvatar(username, avatarURL) {
+        // Clear previous search results
+        document.getElementById("searchResults").innerHTML = "";
+
+        var avatarDiv = document.createElement("div");
+        avatarDiv.classList.add("avatar");
+        avatarDiv.classList.add("show-head"); // Add class to increase size for head image
+        
+        var avatarImg = document.createElement("img");
+        avatarImg.src = avatarURL;
+        avatarImg.alt = username + "'s avatar";
+        avatarImg.setAttribute("data-username", username); // Store username as data attribute
+        
+        var usernameP = document.createElement("p");
+        usernameP.textContent = capitalizeFirstLetter(username) + "'s head";
+        
+        avatarDiv.appendChild(avatarImg);
+        avatarDiv.appendChild(usernameP);
+        
+        document.getElementById("searchResults").appendChild(avatarDiv);
+        
+        // Add click event listener to the head image
+        avatarImg.addEventListener("click", function() {
+            var username = this.getAttribute("data-username");
+            var fullBodyURL = "https://mc-heads.net/body/" + username + "/right";
+            this.src = fullBodyURL; // Change head image to full body image
+            this.alt = username + "'s full body"; // Update alt text
+            usernameP.textContent = capitalizeFirstLetter(username) + "'s full body"; // Update text
+            avatarDiv.classList.add("full-body"); // Add class to increase size for full body image
+        });
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+</script>
+
 </body>
 </html>
